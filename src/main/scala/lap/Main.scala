@@ -32,8 +32,25 @@ class Map(size: Int) {
   }
 
   def relaxAll() {
-    var lonerExists = true
-    while (lonerExists) = 
+    var loner = locateLoner()
+    while (loner.isDefined) {
+      val pairLoner = locateLoner()
+      if (pairLoner.isDefined) {
+        val temp: Int = map(loner.get._1)(loner.get._2)
+        map(loner.get._1)(loner.get._2) =
+            map(pairLoner.get._1)(pairLoner.get._2)
+        map(pairLoner.get._1)(pairLoner.get._2) = temp
+      }
+      else {
+        val pairLoner = Some(Random.nextInt(size), Random.nextInt(size))
+        val temp: Int = map(loner.get._1)(loner.get._2)
+        map(loner.get._1)(loner.get._2) =
+            map(pairLoner.get._1)(pairLoner.get._2)
+        map(pairLoner.get._1)(pairLoner.get._2) = temp
+      }
+      loner = locateLoner()
+      printMap()
+    }
   }
 
   def locateLoner() {
