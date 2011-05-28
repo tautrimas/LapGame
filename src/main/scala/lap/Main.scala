@@ -2,6 +2,7 @@ package lap
 
 import util.Random
 import scala.Some
+import collection.mutable.ArrayBuffer
 
 
 class Map(size: Int) {
@@ -12,11 +13,69 @@ class Map(size: Int) {
 
   val map = Array.fill(size, size)(0)
 
-  def totalyRandom() {
-    val randomSet = Random.shuffle((0 until tileCount).toSeq)
-    randomSet.zipWithIndex foreach { case (i, index) =>
-      map(i % size)(i / size) = index / (tileCount / 4)
+  def clear() {
+    for (y <- 0 until size) {
+      for (x <- 0 until size) {
+        map(x)(y) = 0
+      }
     }
+  }
+
+  def grow() {
+    var pairs = ArrayBuffer[(Int, Int)]()
+    (1 to 4) foreach { _ =>
+      var pair1 = (Random.nextInt(size), Random.nextInt(size))
+      while (pairs contains pair1) {
+        pair1 = (Random.nextInt(size), Random.nextInt(size))
+      }
+      pairs += pair1
+    }
+
+    val sectors = ArrayBuffer.fill(4)(ArrayBuffer[(Int, Int)]())
+
+    pairs.zipWithIndex foreach { case (pair, i) =>
+      sectors(i) += pair
+      map(pair._1)(pair._2) = i + 1
+    }
+
+
+    while (sectors(3).size != tileCount / 4) {
+      sectors.zipWithIndex foreach { case (sector, i) =>
+        var shouldContinue = true
+        var failCount = 0
+        while (shouldContinue && failCount < 5000) {
+          val pair = sector(Random.nextInt(sector.size))
+          val direction = isFree(pair._1, pair._2)
+          if (direction.isDefined) {
+            val (x, y) = direction.get
+            map(x)(y) = i + 1
+            sector += direction.get
+            shouldContinue = false
+            failCount = 0
+          }
+          failCount += 1
+        }
+        if (failCount == 5000) {
+          clear()
+          grow()
+          return
+        }
+      }
+    }
+  }
+
+  def isFree(x: Int, y: Int): Option[(Int, Int)] = {
+    val directions = Random.shuffle(
+      ArrayBuffer((x-1, y), (x+1, y), (x, y-1), (x, y+1)))
+    directions foreach { case (dx, dy) =>
+      try
+        if (map(dx)(dy) == 0)
+          return Some((dx, dy))
+      catch {
+        case e: IndexOutOfBoundsException => {}
+      }
+    }
+    None
   }
 
   def printMap() {
@@ -31,36 +90,11 @@ class Map(size: Int) {
     }
   }
 
-  def relaxAll() {
-    var lonerExists = true
-    while (lonerExists) = 
-  }
 
-  def locateLoner() {
-    (0 until tileCount) foreach { i =>
-      val res = isLoner(i)
-      if (res.isDefined)
-        return res
-    }
-  }
-
-  def isLoner(i: Int): Option[(Int, Int)] = {
-    val x = i % size
-    val y = i / size
-    val sector = map(x)(y)
-    var loner = true
-    if (x >= 1) loner = loner && map(x - 1)(y) != sector
-    if (x < size - 1) loner = loner && map(x + 1)(y) != sector
-    if (y >= 1) loner = loner && map(x)(y - 1) != sector
-    if (y < size - 1) loner = loner && map(x)(y + 1) != sector
-    if (loner)
-      Some((x, y))
-    else None
-  }
 }
 
 object Main extends App {
   val map = new Map(8)
-  map.totalyRandom()
+  map.grow()
   map.printMap()
 }
