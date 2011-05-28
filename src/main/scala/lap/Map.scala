@@ -203,20 +203,22 @@ class Map(size: Int) {
       "Score min max real",
       -minimum,
       tileCount - minimum,
-      stats.sum - minimum)
+      stats.sum - minimum,
+      getScore()
+    )
   }
 
   def getScore(): Int = {
-    val stats = Array.fill(4)(0)
+    var score = 0
     for (y <- 0 until size) {
       for (x <- 0 until size) {
-        val sector = (x + y * size) / (tileCount / 4) + 1
-        if (map(x)(y) == sector) {
-          stats(sector - 1) += 1
+        tileNeighs((x, y)) foreach { n =>
+          if (access(n) != access((x, y)))
+            score += 1
         }
       }
     }
-    stats.sum - 4 * (tileCount / 4) / 4
+    score
   }
 }
 

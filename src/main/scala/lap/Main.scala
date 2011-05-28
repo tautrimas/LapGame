@@ -5,7 +5,7 @@ object Main extends App {
   (1 to 500) foreach { _ =>
     map.totallyOrdered()
     map.slideSequence()
-    if (map.getScore() < 8) {
+    if (map.getScore() >= 90 && map.hand == 0) {
       map.printMap()
       map.printStats()
     }
