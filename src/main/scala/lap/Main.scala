@@ -20,7 +20,8 @@ class Map(size: Int) {
   }
 
   def printMap() {
-    (0 to size) foreach { i => print(i + " ")}
+    print("0 ")
+    (0 until size) foreach { i => print(i + " ")}
     println()
     for (y <- 0 until size) {
       print("abcdefghijklmnopqrstuv".charAt(y) + " ")
@@ -34,12 +35,13 @@ class Map(size: Int) {
   def relaxAll() {
     var loner = locateLoner()
     while (loner.isDefined) {
-      val pairLoner = locateLoner()
+      val pairLoner = locateLoner(loner.get)
       if (pairLoner.isDefined) {
         val temp: Int = map(loner.get._1)(loner.get._2)
         map(loner.get._1)(loner.get._2) =
             map(pairLoner.get._1)(pairLoner.get._2)
         map(pairLoner.get._1)(pairLoner.get._2) = temp
+        println(loner, pairLoner)
       }
       else {
         val pairLoner = Some(Random.nextInt(size), Random.nextInt(size))
@@ -50,15 +52,21 @@ class Map(size: Int) {
       }
       loner = locateLoner()
       printMap()
+      println()
+      Console.readLine()
     }
   }
 
-  def locateLoner() {
-    (0 until tileCount) foreach { i =>
-      val res = isLoner(i)
-      if (res.isDefined)
-        return res
+  def locateLoner(exceptPair: (Int, Int) = null): Option[(Int, Int)] = {
+    Random.shuffle(0 until tileCount) foreach { i =>
+      if (!(exceptPair != null &&
+          i == exceptPair._1 + exceptPair._2 * size)) {
+        val res = isLoner(i)
+        if (res.isDefined)
+          return res
+      }
     }
+    None
   }
 
   def isLoner(i: Int): Option[(Int, Int)] = {
@@ -79,5 +87,6 @@ class Map(size: Int) {
 object Main extends App {
   val map = new Map(8)
   map.totalyRandom()
+  map.relaxAll()
   map.printMap()
 }
