@@ -179,21 +179,37 @@ class Map(size: Int) {
       }
     }
     println(stats.mkString(" "))
+    val minimum = 4 * (tileCount / 4) / 4
     println(
       "Score min max real",
-      0,
-      tileCount - 4 * (tileCount / 4) / 4,
-      stats.sum - 4 * (tileCount / 4) / 4)
+      -minimum,
+      tileCount - minimum,
+      stats.sum - minimum)
+  }
+
+  def getScore(): Int = {
+    val stats = Array.fill(4)(0)
+    for (y <- 0 until size) {
+      for (x <- 0 until size) {
+        val sector = (x + y * size) / (tileCount / 4) + 1
+        if (map(x)(y) == sector) {
+          stats(sector - 1) += 1
+        }
+      }
+    }
+    stats.sum - 4 * (tileCount / 4) / 4
   }
 }
 
 object Main extends App {
   val map = new Map(8)
-  map.totallyOrdered()
   (1 to 10) foreach { _ =>
+    map.totallyOrdered()
     map.slideSequence()
-    map.printMap()
-    map.printStats()
+    if (map.getScore() < 8) {
+      map.printMap()
+      map.printStats()
+    }
   }
 //  map.slideSequence()
 //  map.printMap()
